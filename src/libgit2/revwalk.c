@@ -484,9 +484,10 @@ static int limit_list(git_commit_list **out, git_revwalk *walk, git_commit_list 
 
 	printf("\n\n== BEFORE LOOP ==\n");
 	for (tmplist = list; tmplist; tmplist = tmplist->next) {
-				
-		// if (list->item->uninteresting)
-		// 	continue;
+
+		/*		
+		if (list->item->uninteresting)
+		*/
 
 		git_oid_fmt(oid_hex, &tmplist->item->oid);
 		printf("\nCommit: %s-%d-%d", oid_hex, tmplist->item->time, tmplist->item->uninteresting);
