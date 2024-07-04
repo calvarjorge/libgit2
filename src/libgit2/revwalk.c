@@ -524,13 +524,10 @@ static int limit_list(git_commit_list **out, git_revwalk *walk, git_commit_list 
 		if ((error = add_parents_to_list(walk, commit, &list)) < 0) {
 			printf("\nERROR ADDING PARENTS TO LIST");
 	
-			// Print only intereting commits from commits list
+			/* Print only intereting commits from commits list */
 			printf("\n\n== INTERESTING COMMITS ==\n");
 			for (tmplist = newlist; tmplist; tmplist = tmplist->next) {
 				
-				// if (list->item->uninteresting)
-				// 	continue;
-
 				git_oid_fmt(oid_hex, &tmplist->item->oid);
 				printf("\nCommit: %s-%d-%d", oid_hex, tmplist->item->time, tmplist->item->uninteresting);
 				printf("\nParents:");
@@ -545,9 +542,6 @@ static int limit_list(git_commit_list **out, git_revwalk *walk, git_commit_list 
 
 			}
 			for (tmplist = list; tmplist; tmplist = tmplist->next) {
-				
-				// if (list->item->uninteresting)
-				// 	continue;
 
 				git_oid_fmt(oid_hex, &tmplist->item->oid);
 				printf("\nCommit: %s-%d-%d", oid_hex, tmplist->item->time, tmplist->item->uninteresting);
@@ -564,9 +558,6 @@ static int limit_list(git_commit_list **out, git_revwalk *walk, git_commit_list 
 			}
 			for (tmplist = *p; tmplist; tmplist = tmplist->next) {
 				
-				// if (list->item->uninteresting)
-				// 	continue;
-
 				git_oid_fmt(oid_hex, &tmplist->item->oid);
 				printf("\nCommit: %s-%d-%d", oid_hex, tmplist->item->time, tmplist->item->uninteresting);
 				printf("\nParents:");
