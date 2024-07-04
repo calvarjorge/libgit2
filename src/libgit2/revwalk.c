@@ -309,6 +309,8 @@ static int revwalk_next_unsorted(git_commit_list_node **object_out, git_revwalk 
 	int error;
 	git_commit_list_node *next;
 
+	printf("\nrevwalk_next_unsorted...");
+
 	while (!(error = get_revision(&next, walk, &walk->iterator_rand))) {
 		/* Some commits might become uninteresting after being added to the list */
 		if (!next->uninteresting) {
@@ -325,6 +327,8 @@ static int revwalk_next_toposort(git_commit_list_node **object_out, git_revwalk 
 	int error;
 	git_commit_list_node *next;
 
+	printf("\nREVWALK NEXT TOPOSORT\n");
+
 	while (!(error = get_revision(&next, walk, &walk->iterator_topo))) {
 		/* Some commits might become uninteresting after being added to the list */
 		if (!next->uninteresting) {
@@ -338,6 +342,8 @@ static int revwalk_next_toposort(git_commit_list_node **object_out, git_revwalk 
 
 static int revwalk_next_reverse(git_commit_list_node **object_out, git_revwalk *walk)
 {
+	printf("\nREVWALK NEXT REVERSE\n");
+
 	*object_out = git_commit_list_pop(&walk->iterator_reverse);
 	return *object_out ? 0 : GIT_ITEROVER;
 }
@@ -472,16 +478,127 @@ static int limit_list(git_commit_list **out, git_revwalk *walk, git_commit_list 
 	git_commit_list *list = commits;
 	git_commit_list *newlist = NULL;
 	git_commit_list **p = &newlist;
+	git_commit_list *tmplist;
+	char oid_hex[GIT_OID_HEXSZ + 1];
+	int i = 0, j = 0;
+
+	printf("\n\n== BEFORE LOOP ==\n");
+	for (tmplist = list; tmplist; tmplist = tmplist->next) {
+				
+		// if (list->item->uninteresting)
+		// 	continue;
+
+		git_oid_fmt(oid_hex, &tmplist->item->oid);
+		printf("\nCommit: %s-%d-%d", oid_hex, tmplist->item->time, tmplist->item->uninteresting);
+		printf("\nParents:");
+
+		for (j = 0; j < tmplist->item->out_degree; j++) {
+			git_commit_list_node *p = tmplist->item->parents[j];
+
+			git_oid_fmt(oid_hex, &p->oid);
+			printf(" %s-%d-%d", oid_hex, p->time, p->uninteresting);
+		}
+
+
+	}
 
 	while (list) {
+		i++;
 		git_commit_list_node *commit = git_commit_list_pop(&list);
 
-		if ((error = add_parents_to_list(walk, commit, &list)) < 0)
+		printf("\n\n== NEXT ============= (%d)\n", i);
+
+		
+		git_oid_fmt(oid_hex, &commit->oid);
+		printf("\nCommit: %s-%d-%d", oid_hex, commit->time, commit->uninteresting);
+		printf("\nParents:");
+
+				for (j = 0; j < commit->out_degree; j++) {
+					git_commit_list_node *p = commit->parents[j];
+
+					git_oid_fmt(oid_hex, &p->oid);
+					printf(" %s-%d-%d", oid_hex, p->time, p->uninteresting);
+				}
+
+		if ((error = add_parents_to_list(walk, commit, &list)) < 0) {
+			printf("\nERROR ADDING PARENTS TO LIST");
+	
+			// Print only intereting commits from commits list
+			printf("\n\n== INTERESTING COMMITS ==\n");
+			for (tmplist = newlist; tmplist; tmplist = tmplist->next) {
+				
+				// if (list->item->uninteresting)
+				// 	continue;
+
+				git_oid_fmt(oid_hex, &tmplist->item->oid);
+				printf("\nCommit: %s-%d-%d", oid_hex, tmplist->item->time, tmplist->item->uninteresting);
+				printf("\nParents:");
+
+				for (j = 0; j < tmplist->item->out_degree; j++) {
+					git_commit_list_node *p = tmplist->item->parents[j];
+
+					git_oid_fmt(oid_hex, &p->oid);
+					printf(" %s-%d-%d", oid_hex, p->time, p->uninteresting);
+				}
+
+
+			}
+			for (tmplist = list; tmplist; tmplist = tmplist->next) {
+				
+				// if (list->item->uninteresting)
+				// 	continue;
+
+				git_oid_fmt(oid_hex, &tmplist->item->oid);
+				printf("\nCommit: %s-%d-%d", oid_hex, tmplist->item->time, tmplist->item->uninteresting);
+				printf("\nParents:");
+
+				for (j = 0; j < tmplist->item->out_degree; j++) {
+					git_commit_list_node *p = tmplist->item->parents[j];
+
+					git_oid_fmt(oid_hex, &p->oid);
+					printf(" %s-%d-%d", oid_hex, p->time, p->uninteresting);
+				}
+
+
+			}
+			for (tmplist = *p; tmplist; tmplist = tmplist->next) {
+				
+				// if (list->item->uninteresting)
+				// 	continue;
+
+				git_oid_fmt(oid_hex, &tmplist->item->oid);
+				printf("\nCommit: %s-%d-%d", oid_hex, tmplist->item->time, tmplist->item->uninteresting);
+				printf("\nParents:");
+
+				for (j = 0; j < tmplist->item->out_degree; j++) {
+					git_commit_list_node *p = tmplist->item->parents[j];
+
+					git_oid_fmt(oid_hex, &p->oid);
+					printf(" %s-%d-%d", oid_hex, p->time, p->uninteresting);
+				}
+
+
+			}
+
+			git_oid_fmt(oid_hex, commit);
+			printf("\nCommit: %s-%d-%d", oid_hex, commit->time, commit->uninteresting);
+			printf("\nParents:");
+
+			for (j = 0; j < commit->out_degree; j++) {
+				git_commit_list_node *p = commit->parents[j];
+
+				git_oid_fmt(oid_hex, &p->oid);
+				printf(" %s-%d-%d", oid_hex, p->time, p->uninteresting);
+			}
+
+
 			return error;
+		}
+			
 
 		if (commit->uninteresting) {
 			mark_parents_uninteresting(commit);
-
+ 
 			slop = still_interesting(list, time, slop);
 			if (slop)
 				continue;
@@ -501,6 +618,7 @@ static int limit_list(git_commit_list **out, git_revwalk *walk, git_commit_list 
 	return 0;
 }
 
+
 static int get_revision(git_commit_list_node **out, git_revwalk *walk, git_commit_list **list)
 {
 	int error;
@@ -512,12 +630,18 @@ static int get_revision(git_commit_list_node **out, git_revwalk *walk, git_commi
 		return GIT_ITEROVER;
 	}
 
+	char oid_hex[GIT_OID_HEXSZ + 1];
+	git_oid_fmt(oid_hex, &commit->oid);
+	printf("\nCommit: %s", oid_hex);
+
+
 	/*
 	 * If we did not run limit_list and we must add parents to the
 	 * list ourselves.
 	 */
 	if (!walk->limited) {
 		if ((error = add_parents_to_list(walk, commit, list)) < 0)
+			printf("\nERROR ADDING PARENTS TO LIST");
 			return error;
 	}
 
@@ -654,8 +778,13 @@ static int prepare_walk(git_revwalk *walk)
 		}
 	}
 
-	if (walk->limited && (error = limit_list(&commits, walk, commits)) < 0)
+	printf("\nConvoluted loop finished...");
+
+	if (walk->limited && (error = limit_list(&commits, walk, commits)) < 0) {
+		printf("\nError limiting list...");
 		return error;
+	}
+		
 
 	if (walk->sorting & GIT_SORT_TOPOLOGICAL) {
 		error = sort_in_topological_order(&walk->iterator_topo, walk, commits);
@@ -677,6 +806,8 @@ static int prepare_walk(git_revwalk *walk)
 		walk->iterator_rand = commits;
 		walk->get_next = revwalk_next_unsorted;
 	}
+
+	printf("\nAssigned get_next function...");
 
 	if (walk->sorting & GIT_SORT_REVERSE) {
 
@@ -777,16 +908,22 @@ int git_revwalk_next(git_oid *oid, git_revwalk *walk)
 	GIT_ASSERT_ARG(walk);
 	GIT_ASSERT_ARG(oid);
 
+	
+
 	if (!walk->walking) {
+		printf("\nPareparing walk...");
 		if ((error = prepare_walk(walk)) < 0)
 			return error;
+		printf("\nWalk prepared...");
 	}
+	
 
 	error = walk->get_next(&next, walk);
 
 	if (error == GIT_ITEROVER) {
 		git_revwalk_reset(walk);
 		git_error_clear();
+		printf("\n\n== ITERATION OVER - SUCCESSFULLY COMPLETED ==\n\n");
 		return GIT_ITEROVER;
 	}
 

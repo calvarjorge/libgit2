@@ -642,3 +642,30 @@ void test_revwalk_basic__newer_hidden_commit_hides_old_commits(void)
 
 	cl_git_fail_with(GIT_ITEROVER, git_revwalk_next(&oid, _walk));
 }
+
+void test_revwalk_basic__custom_dd_go(void)
+{
+	git_oid first;
+	git_oid tohide;
+	git_oid oid;
+	int i = 0;
+	revwalk_basic_setup_walk("logs-backend.git");
+	cl_git_pass(git_oid__fromstr(
+	        &first, "f35ed53f1f2e8813d36215063a0da2f0bb91f45d",
+	        GIT_OID_SHA1));
+
+	cl_git_pass(git_oid__fromstr(
+	        &tohide, "7e5796d5af6143809a5068455cdf7bcf31df74cb",
+	        GIT_OID_SHA1));
+
+
+	cl_git_pass(git_revwalk_push(_walk, &first));
+	cl_git_pass(git_revwalk_hide(_walk, &tohide));
+	printf("\n\n== STARTING LOOP ===============\n");
+	
+	while (1) {
+		printf("\n\n== NEXT =============== (%d) \n", i);
+		cl_git_pass(git_revwalk_next(&oid, _walk));
+		i++;
+	}
+}
